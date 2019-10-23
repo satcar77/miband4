@@ -1,7 +1,6 @@
 
-![Requirements](https://img.shields.io/requires/github/satcar77/miband4)
+![Requirements](https://img.shields.io/badge/Python-2.7-lightgrey)
 ![Commit](https://img.shields.io/github/last-commit/satcar77/miband4) 
-![Code Quality](https://img.shields.io/scrutinizer/quality/g/satcar77/miband4)
 ![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)
 
 # MIBAND 4 -Python Library
@@ -12,7 +11,7 @@
 
 ## Contributors 
 
- MiBand 4 provides subset of services provided by MiBand 2/3. For the services that were similar for both devices, the bluetooth characteristics, UUIDs  and request/response byte sequence were the same. Therefore,  I utilized information already uncovered by [Freeyourgadget team](https://github.com/Freeyourgadget/Gadgetbridge) and made use of the code by [Andrey Nikishaev]([https://github.com/creotiv(https://github.com/creotiv)) for MiBand2. 
+ MiBand 4 provides subset of services provided by MiBand 2/3. For the services that were similar for both devices, the bluetooth characteristics, UUIDs  and request/response byte sequence were the same. Therefore,  I utilized information already uncovered by [Freeyourgadget team](https://github.com/Freeyourgadget/Gadgetbridge) and made use of the code by [Andrey Nikishaev](https://github.com/creotiv) for MiBand2. 
 
 
 
