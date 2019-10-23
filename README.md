@@ -114,6 +114,5 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
 - 🔃 Create a new pull request
 
----
 
 
