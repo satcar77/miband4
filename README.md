@@ -86,7 +86,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
 
 ## TODO
-- Fetching fitness data within a given time frame 
+- Fetching fitness data within certain intervals in past
 - Receiving response for music controls
 - Setting Alarm
 
