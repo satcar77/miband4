@@ -13,9 +13,9 @@ args = parser.parse_args()
 
 MAC_ADDR= args.mac
 
-#ADD YOUR AUTH KEY HERE
-AUTH_KEY= b'\xa4\x1e\x52\x80\xe7\xed\x2a\x45\x8f\xf3\xb1\x5c\xb6\xa1\xf0\xd4'
-
+#ADD YOUR AUTH KEY HERE.EXAMPLE:
+#AUTH_KEY= b'\xa4\x1e\x52\x80\xe7\xed\x2a\x45\x8f\xf3\xb1\x5c\xb6\xa1\xf0\xd4'
+AUTH_KEY= None
 #Needs Auth
 def get_step_count():
     binfo = band.get_steps()
