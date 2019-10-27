@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 import subprocess
 from cursesmenu import *
 from cursesmenu.items import *
@@ -14,30 +14,31 @@ args = parser.parse_args()
 MAC_ADDR= args.mac
 
 #ADD YOUR AUTH KEY HERE
-AUTH_KEY= b'\xa4\x1e\x52\x80\xe7\xed\x2a\x45\x8f\xf3\xb1\x5c\xb6\xa1\xf0\xd4'
+#mine was 3505642c77773c07e52efc326b58d9a0
+AUTH_KEY= b'\x35\x05\x64\x2c\x77\x77\x3c\x07\xe5\x2e\xfc\x32\x6b\x58\xd9\xa0'
 
 #Needs Auth
 def get_step_count():
     binfo = band.get_steps()
-    print 'Number of steps: ', binfo['steps']
-    print 'Fat Burned: ', binfo['fat_burned']
-    print 'Calories: ', binfo['calories']
-    print 'Distance travelled in meters: ', binfo['meters']
-    raw_input('Press a key to continue')
+    print ('Number of steps: ', binfo['steps'])
+    print ('Fat Burned: ', binfo['fat_burned'])
+    print ('Calories: ', binfo['calories'])
+    print ('Distance travelled in meters: ', binfo['meters'])
+    input('Press a key to continue')
 def general_info():
-    print 'MiBand'
-    print 'Soft revision:',band.get_revision()
-    print 'Hardware revision:',band.get_hrdw_revision()
-    print 'Serial:',band.get_serial()
-    print 'Battery:', band.get_battery_info()['level'] 
-    print 'Time:', band.get_current_time()['date'].isoformat()
-    raw_input('Press a key to continue')
+    print ('MiBand')
+    print ('Soft revision:',band.get_revision())
+    print ('Hardware revision:',band.get_hrdw_revision())
+    print ('Serial:',band.get_serial())
+    print ('Battery:', band.get_battery_info()['level'])
+    print ('Time:', band.get_current_time()['date'].isoformat())
+    input('Press a key to continue')
 
 def send_notif():
-    msg = raw_input ("Enter message or phone number to be displayed: ")
-    ty= input ("1 for Message / 2 for Missed Call / 3 for Call: ")
+    msg = input ("Enter message or phone number to be displayed: ")
+    ty= int(input ("1 for Message / 2 for Missed Call / 3 for Call: "))
     if(ty > 3 or ty < 1):
-        print 'Invalid choice'
+        print ('Invalid choice')
         time.sleep(2)
         return
     a=[5,4,3]
@@ -46,18 +47,21 @@ def send_notif():
 #Needs Auth
 def get_heart_rate():
     print ('Latest heart rate is : %i' % band.get_heart_rate_one_time())
-    raw_input('Press a key to continue')
+    input('Press a key to continue')
 
 def logger(data):
-    print 'Realtime heart BPM:', data
+    print ('Realtime heart BPM:', data)
+
 #Needs Auth
 def get_realtime():
     band.start_heart_rate_realtime(heart_measure_callback=logger)
-    raw_input('Press Enter to continue')
-#Needs Auth
+    input('Press Enter to continue')
+
+#Needs Auth.This feature has the potential to brick your Mi Band 4. You are doing this at your own risk.
 def restore_firmware():
-    path = raw_input("Enter the path of the firmware file :")
+    path = input("Enter the path of the firmware file :")
     band.dfuUpdate(path)
+    
 #Needs Auths
 def set_time():
     now = datetime.now()

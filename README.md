@@ -1,18 +1,17 @@
 
-![Requirements](https://img.shields.io/requires/github/satcar77/miband4)
+![Requirements](https://img.shields.io/badge/Python-3.6-lightgrey)
 ![Commit](https://img.shields.io/github/last-commit/satcar77/miband4) 
-![Code Quality](https://img.shields.io/scrutinizer/quality/g/satcar77/miband4)
 ![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)
 
 # MIBAND 4 -Python Library
 
 > Library to interact with Xiaomi MiBand4. 
 > Tested only on linux.
-
+![demo](https://github.com/satcar77/miband4/raw/master/screen/1.png)
 
 ## Contributors 
 
- MiBand 4 provides subset of services provided by MiBand 2/3. For the services that were similar for both devices, the bluetooth characteristics, UUIDs  and request/response byte sequence were the same. Therefore,  I utilized information already uncovered by [Freeyourgadget team](https://github.com/Freeyourgadget/Gadgetbridge) and made use of the code by [Andrey Nikishaev]([https://github.com/creotiv(https://github.com/creotiv)) for MiBand2. 
+ MiBand 4 provides subset of services provided by MiBand 2/3. For the services that were similar for both devices, the bluetooth characteristics, UUIDs  and request/response byte sequence were the same. Therefore,  I utilized information already uncovered by [Freeyourgadget team](https://github.com/Freeyourgadget/Gadgetbridge) and made use of the code by [Andrey Nikishaev](https://github.com/creotiv) for MiBand2. 
 
 
 
@@ -42,7 +41,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 - Retrieving device info
 ### Features that needs authkey
 - Retrieving heart rate (Realtime and Single time)
-- Firmware update/restore
+- Firmware update/restore (This feature has the potential to brick your Mi Band 4. Do it at your own risk)
 - Retrieving steps count, calories count and fat burnt
 - Setting date and time
 
@@ -59,7 +58,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
     ```
     sudo apt-get install libglib2.0-dev
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 2. (**Optional**) Find AuthKey for your device and set AUTH_KEY variable with hex string format in miband4_console.py. See AuthKey section. 
 	```
@@ -81,13 +80,13 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 5.  Run the miband4_console
 
     ```
-    python miband4_console.py -m MAC_ADDRESS 
+    python3 miband4_console.py -m MAC_ADDRESS 
 	```
 
 
 
 ## TODO
-- Fetching fitness data within in a given time frame 
+- Fetching fitness data within certain intervals in past
 - Receiving response for music controls
 - Setting Alarm
 
@@ -115,6 +114,5 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
 - 🔃 Create a new pull request
 
----
 
 
