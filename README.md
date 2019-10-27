@@ -1,5 +1,5 @@
 
-![Requirements](https://img.shields.io/badge/Python-2.7-lightgrey)
+![Requirements](https://img.shields.io/badge/Python-3.6-lightgrey)
 ![Commit](https://img.shields.io/github/last-commit/satcar77/miband4) 
 ![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)
 
@@ -41,7 +41,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 - Retrieving device info
 ### Features that needs authkey
 - Retrieving heart rate (Realtime and Single time)
-- Firmware update/restore
+- Firmware update/restore (This feature has the potential to brick your Mi Band 4. Do it at your own risk)
 - Retrieving steps count, calories count and fat burnt
 - Setting date and time
 
