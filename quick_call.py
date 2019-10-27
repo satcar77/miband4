@@ -1,8 +1,8 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 import sys
 from miband import miband
 from bluepy.btle import BTLEDisconnectError
- 
+
 while True :
     try:
         band = miband(sys.argv[1],debug=True)

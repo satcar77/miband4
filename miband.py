@@ -10,8 +10,10 @@ try:
     from Queue import Queue, Empty
 except ImportError:
     from queue import Queue, Empty
-
-
+try:
+    xrange
+except NameError:
+    xrange = range
 
 class AuthenticationDelegate(DefaultDelegate):
     def __init__(self, device):
@@ -62,7 +64,8 @@ class AuthenticationDelegate(DefaultDelegate):
             else:
                 print("Unexpected data on handle " + str(hnd) + ": " + str(data.encode("hex")))
                 return
-         # Doesn't work as expected. Needs debugging. The activity characteristic sends the previews recorded information
+         # See start_get_previews_data(). Doesn't work as expected. Needs debugging. 
+         # The activity characteristic sends the previews recorded information
          # from one given timestamp until now.
         elif hnd == self.device._char_activity.getHandle():
             print("length of data is "+str(len(data)))
@@ -245,7 +248,7 @@ class miband(Peripheral):
                 base_value = '\x03\x01'
         svc = self.getServiceByUUID(UUIDS.SERVICE_ALERT_NOTIFICATION)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_CUSTOM_ALERT)[0]
-        char.write(base_value+phone, withResponse=True)
+        char.write(bytes(base_value+phone,'utf-8'), withResponse=True)
     
     def get_steps(self):
         char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_STEPS)[0]
@@ -254,7 +257,7 @@ class miband(Peripheral):
         meters = struct.unpack('h', a[5:7])[0] if len(a) >= 7 else None
         fat_burned = struct.unpack('h', a[2:4])[0] if len(a) >= 4 else None
         # why only 1 byte??
-        calories = struct.unpack('b', a[9])[0] if len(a) >= 10 else None
+        calories = struct.unpack('b', a[9:10])[0] if len(a) >= 10 else None
         return {
             "steps": steps,
             "meters": meters,
@@ -275,13 +278,13 @@ class miband(Peripheral):
     @staticmethod
     def _parse_date(bytes):
         year = struct.unpack('h', bytes[0:2])[0] if len(bytes) >= 2 else None
-        month = struct.unpack('b', bytes[2])[0] if len(bytes) >= 3 else None
-        day = struct.unpack('b', bytes[3])[0] if len(bytes) >= 4 else None
-        hours = struct.unpack('b', bytes[4])[0] if len(bytes) >= 5 else None
-        minutes = struct.unpack('b', bytes[5])[0] if len(bytes) >= 6 else None
-        seconds = struct.unpack('b', bytes[6])[0] if len(bytes) >= 7 else None
-        day_of_week = struct.unpack('b', bytes[7])[0] if len(bytes) >= 8 else None
-        fractions256 = struct.unpack('b', bytes[8])[0] if len(bytes) >= 9 else None
+        month = struct.unpack('b', bytes[2:3])[0] if len(bytes) >= 3 else None
+        day = struct.unpack('b', bytes[3:4])[0] if len(bytes) >= 4 else None
+        hours = struct.unpack('b', bytes[4:5])[0] if len(bytes) >= 5 else None
+        minutes = struct.unpack('b', bytes[5:6])[0] if len(bytes) >= 6 else None
+        seconds = struct.unpack('b', bytes[6:7])[0] if len(bytes) >= 7 else None
+        day_of_week = struct.unpack('b', bytes[7:8])[0] if len(bytes) >= 8 else None
+        fractions256 = struct.unpack('b', bytes[8:9])[0] if len(bytes) >= 9 else None
 
         return {"date": datetime(*(year, month, day, hours, minutes, seconds)), "day_of_week": day_of_week, "fractions256": fractions256}
     
@@ -291,9 +294,9 @@ class miband(Peripheral):
         return data
 
     def _parse_battery_response(self, bytes):
-        level = struct.unpack('b', bytes[1])[0] if len(bytes) >= 2 else None
-        last_level = struct.unpack('b', bytes[19])[0] if len(bytes) >= 20 else None
-        status = 'normal' if struct.unpack('b', bytes[2])[0] == 0 else "charging"
+        level = struct.unpack('b', bytes[1:2])[0] if len(bytes) >= 2 else None
+        last_level = struct.unpack('b', bytes[19:20])[0] if len(bytes) >= 20 else None
+        status = 'normal' if struct.unpack('b', bytes[2:3])[0] == b'0' else "charging"
         datetime_last_charge = self._parse_date(bytes[11:18])
         datetime_last_off = self._parse_date(bytes[3:10])
 
@@ -319,13 +322,13 @@ class miband(Peripheral):
         svc = self.getServiceByUUID(UUIDS.SERVICE_DEVICE_INFO)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_REVISION)[0]
         data = char.read()
-        return data
+        return data.decode('utf-8')
 
     def get_hrdw_revision(self):
         svc = self.getServiceByUUID(UUIDS.SERVICE_DEVICE_INFO)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_HRDW_REVISION)[0]
         data = char.read()
-        return data
+        return data.decode('utf-8')
 
     def set_encoding(self, encoding="en_US"):
         char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CONFIGURATION)[0]
@@ -351,7 +354,7 @@ class miband(Peripheral):
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_SERIAL)[0]
         data = char.read()
         serial = struct.unpack('12s', data[-12:])[0] if len(data) == 12 else None
-        return serial
+        return serial.decode('utf-8')
 
     def send_alert(self, _type):
         svc = self.getServiceByUUID(UUIDS.SERVICE_ALERT)
@@ -399,19 +402,19 @@ class miband(Peripheral):
                 crc ^= ((crc & 0xFF) << 5) & 0xFFFFFF
         crc &= 0xFFFF
         print('CRC Value is-->', crc)
-        raw_input('Press Enter to Continue')
+        input('Press Enter to Continue')
         if extension.lower() == "res":
             # file size hex value is
-            char.write('\x01'+ struct.pack("<i", fileSize)[:-1] +'\x02', withResponse=True)
+            char.write(b'\x01'+ struct.pack("<i", fileSize)[:-1] + b'\x02', withResponse=True)
         elif extension.lower() == "fw":
-            char.write('\x01' + struct.pack("<i", fileSize)[:-1], withResponse=True)
-        char.write("\x03", withResponse=True)
+            char.write(b'\x01' + struct.pack("<i", fileSize)[:-1], withResponse=True)
+        char.write(b'\x03', withResponse=True)
         char1 = svc.getCharacteristics(UUIDS.CHARACTERISTIC_DFU_FIRMWARE_WRITE)[0]
         with open(fileName) as f:
           while True:
             c = f.read(20) #takes 20 bytes :D
             if not c:
-              print "Update Over"
+              print ("Update Over")
               break
             print('Writing Resource', c.encode('hex'))
             char1.write(c)
@@ -419,13 +422,13 @@ class miband(Peripheral):
         char.write(b'\x00', withResponse=True)
         self.waitForNotifications(0.5)
         print('CheckSum is --> ', hex(crc & 0xFF), hex((crc >> 8) & 0xFF))
-        checkSum = b'\x04' + chr(crc & 0xFF) + chr((crc >> 8) & 0xFF)
+        checkSum = b'\x04' + bytes(chr(crc & 0xFF),'utf-8') + bytes(chr((crc >> 8) & 0xFF),'utf-8')
         char.write(checkSum, withResponse=True)
         if extension.lower() == "fw":
             self.waitForNotifications(0.5)
-            char.write('\x05', withResponse=True)
+            char.write(b'\x05', withResponse=True)
         print('Update Complete')
-        raw_input('Press Enter to Continue')
+        input('Press Enter to Continue')
 
     def get_heart_rate_one_time(self):
         # stop continous
@@ -490,6 +493,7 @@ class miband(Peripheral):
         self.heart_raw_callback = None
         self.accel_raw_callback = None
 
+# Doesn't work as intended. Working on this part
     def start_get_previews_data(self, start_timestamp):
         self._auth_previews_data_notif(True)
         self.waitForNotifications(0.1)
@@ -503,7 +507,3 @@ class miband(Peripheral):
         trigger = b'\x01\x01' + ts + b'\x00\x08'
         self._char_fetch.write(trigger, False)
         self.active = True
-
-def log(rate):
-    data = "Time: %s, Heart Rate : %s\n" % (int(time.time()), rate)
-    print(data)
