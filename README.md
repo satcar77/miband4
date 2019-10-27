@@ -58,7 +58,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
     ```
     sudo apt-get install libglib2.0-dev
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 2. (**Optional**) Find AuthKey for your device and set AUTH_KEY variable with hex string format in miband4_console.py. See AuthKey section. 
 	```
@@ -80,7 +80,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 5.  Run the miband4_console
 
     ```
-    python miband4_console.py -m MAC_ADDRESS 
+    python3 miband4_console.py -m MAC_ADDRESS 
 	```
 
 
