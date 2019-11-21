@@ -39,6 +39,8 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 - Sending alerts
 - Sending Missed call notifications
 - Retrieving device info
+- Sending music title and music state(Playing/Paused)
+- Recieve music control events (Play/Pause/Forward/Backward/Volume Up/Volume Down/Enter Music app/ Exit Music app) through callbacks
 ### Features that needs authkey
 - Retrieving heart rate (Realtime and Single time)
 - Firmware update/restore (This feature has the potential to brick your Mi Band 4. Do it at your own risk)
@@ -87,7 +89,6 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
 ## TODO
 - Fetching fitness data within certain intervals in past
-- Receiving response for music controls
 - Setting Alarm
 
 
