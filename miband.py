@@ -1,7 +1,7 @@
 import sys,os,time
 import logging
 from bluepy.btle import Peripheral, DefaultDelegate, ADDR_TYPE_RANDOM,ADDR_TYPE_PUBLIC, BTLEException
-from constants import UUIDS, AUTH_STATES, ALERT_TYPES, QUEUE_TYPES
+from constants import UUIDS, AUTH_STATES, ALERT_TYPES, QUEUE_TYPES, MUSICSTATE
 import struct
 from datetime import datetime, timedelta
 from Crypto.Cipher import AES
@@ -15,7 +15,8 @@ try:
 except NameError:
     xrange = range
 
-class AuthenticationDelegate(DefaultDelegate):
+            
+class Delegate(DefaultDelegate):
     def __init__(self, device):
         DefaultDelegate.__init__(self)
         self.device = device
@@ -103,9 +104,33 @@ class AuthenticationDelegate(DefaultDelegate):
                     if timestamp == d:
                         self.device.active = False
                         return
-        else:
-            self.device._log.error("Unhandled Response " + hex(hnd) + ": " +
-                                   str(data.encode("hex")) + " len:" + str(len(data)))
+        #music controls
+        elif(hnd == 74):
+            if(data[1:] == b'\xe0'):
+                self.device.setMusic()
+                if(self.device._default_music_focus_in):
+                    self.device._default_music_focus_in()
+            elif(data[1:]==b'\xe1'):
+                if(self.device._default_music_focus_out):
+                    self.device._default_music_focus_out()
+            elif(data[1:]==b'\x00'):
+                if(self.device._default_music_play):
+                    self.device._default_music_play()
+            elif(data[1:]==b'\x01'):
+                if(self.device._default_music_focus_in):
+                    self.device._default_music_focus_in()
+            elif(data[1:]==b'\x03'):
+                if(self.device._default_music_forward):
+                    self.device._default_music_forward()
+            elif(data[1:]==b'\x04'):
+                if(self.device._default_music_back):
+                    self.device._default_music_back()
+            elif(data[1:]==b'\x05'):
+                if(self.device._default_music_vup):
+                    self.device._default_music_vup()
+            elif(data[1:]==b'\x06'):
+                if(self.device._default_music_vdown):
+                    self.device._default_music_vdown()
 
 class miband(Peripheral):
     _send_rnd_cmd = struct.pack('<2s', b'\x02\x00')
@@ -122,7 +147,7 @@ class miband(Peripheral):
         self._log.info('Connecting to ' + mac_address)
         Peripheral.__init__(self, mac_address, addrType=ADDR_TYPE_PUBLIC)
         self._log.info('Connected')
-        self.setSecurityLevel(level = "medium")
+       # self.setSecurityLevel(level = "medium")
         self.timeout = timeout
         self.mac_address = mac_address
         self.state = None
@@ -147,9 +172,14 @@ class miband(Peripheral):
         self._char_activity = self.getCharacteristics(uuid=UUIDS.CHARACTERISTIC_ACTIVITY_DATA)[0]
         self._desc_activity = self._char_activity.getDescriptors(forUUID=UUIDS.NOTIFICATION_DESCRIPTOR)[0]
 
+        #chunked transfer and music
+        self._char_chunked = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CHUNKED_TRANSFER)[0]
+        self._char_music_notif= self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_MUSIC_NOTIFICATION)[0]
+        self._desc_music_notif = self._char_music_notif.getDescriptors(forUUID=UUIDS.NOTIFICATION_DESCRIPTOR)[0]
+
         self._auth_notif(True)
         self.waitForNotifications(0.1)
-    
+        self.setDelegate( Delegate(self) )
     def generateAuthKey(self):
         if(self.authKey):
             return struct.pack('<18s',b'\x01\x00'+ self.auth_key)
@@ -184,7 +214,6 @@ class miband(Peripheral):
             self._log.error("Something went wrong while changing the Fetch and Activity notifications status...")
     
     def initialize(self):
-        self.setDelegate(AuthenticationDelegate(self))
         self._req_rdn()
 
         while True:
@@ -507,3 +536,72 @@ class miband(Peripheral):
         trigger = b'\x01\x01' + ts + b'\x00\x08'
         self._char_fetch.write(trigger, False)
         self.active = True
+
+    def enable_music(self):
+        self._desc_music_notif.write(b'\x01\x00')
+
+    def writeChunked(self,type,data):
+        MAX_CHUNKLENGTH = 17
+        remaining = len(data)
+        count =0 
+        while(remaining > 0):
+            copybytes = min(remaining,MAX_CHUNKLENGTH)
+            chunk=b''
+            flag = 0
+            if(remaining <= MAX_CHUNKLENGTH):
+                flag |= 0x80
+                if(count == 0):
+                    flag |= 0x40
+            elif(count>0):
+                flag |= 0x40
+             
+            chunk+=b'\x00'
+            chunk+= bytes([flag|type])
+            chunk+= bytes([count & 0xff])
+            chunk+= data[(count * MAX_CHUNKLENGTH):(count * MAX_CHUNKLENGTH)+copybytes]
+            count+=1
+            self._char_chunked.write(chunk)
+            remaining-=copybytes
+
+    def setTrack(self,track,state):
+        self.track = track
+        self.pp_state = state     
+        self.setMusic()
+
+    def setMusicCallback(self,play=None,pause=None,forward=None,backward=None,volumeup=None,volumedown=None,focusin=None,focusout=None):
+        if play is not None:
+            self._default_music_play = play
+        if pause is not None:
+            self._default_music_pause = pause
+        if forward is not None:
+            self._default_music_forward = forward
+        if backward is not None:
+            self._default_music_back = backward
+        if volumedown is not None:
+            self._default_music_vdown = volumedown
+        if volumeup is not None:
+            self._default_music_vup = volumeup
+        if focusin is not None:
+            self._default_music_focus_in = focusin
+        if focusout is not None:
+            self._default_music_focus_out = focusout
+
+    def setMusic(self):
+        track = self.track
+        state = self.pp_state
+        # st=b"\x01\x00\x01\x00\x00\x00\x01\x00"
+        #self.writeChunked(3,st)
+        flag = 0x00
+        flag |=0x01
+        length =8
+        if(len(track)>0):
+            length+=len(track.encode('utf-8'))
+            flag |=0x0e
+        buf = bytes([flag])+bytes([state])+bytes([1,0,0,0])+bytes([1,0])
+        if(len(track)>0):
+            buf+=bytes(track,'utf-8')
+            buf+=bytes([0])
+        self.writeChunked(3,buf)
+
+    
+

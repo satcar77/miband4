@@ -6,6 +6,7 @@ from miband import miband
 from bluepy.btle import BTLEDisconnectError
 import argparse
 import time
+from constants import MUSICSTATE
 from datetime import datetime
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--mac', required=True, help='Set mac address of the device')
@@ -15,7 +16,7 @@ MAC_ADDR= args.mac
 
 #ADD YOUR AUTH KEY HERE
 #mine was 3505642c77773c07e52efc326b58d9a0
-AUTH_KEY= b'\x35\x05\x64\x2c\x77\x77\x3c\x07\xe5\x2e\xfc\x32\x6b\x58\xd9\xa0'
+AUTH_KEY= b'\x44\x5c\x5c\x08\x8f\xb3\xc6\x0d\x05\x12\x47\x26\xeb\xa3\x9e\x8c'
 
 #Needs Auth
 def get_step_count():
@@ -67,6 +68,33 @@ def set_time():
     now = datetime.now()
     print ('Set time to:', now)
     band.set_current_time(now)
+    
+#default callbacks        
+def _default_music_play():
+    print("Played")
+def _default_music_pause():
+    print("Paused")
+def _default_music_forward():
+    print("Forward")
+def _default_music_back():
+    print("Backward")
+def _default_music_vup():
+    print("volume up")
+def _default_music_vdown():
+    print("volume down")
+def _default_music_focus_in():
+    print("Music focus in")
+def _default_music_focus_out():
+    print("Music focus out")    
+
+def set_music():
+    band.setMusicCallback(_default_music_play,_default_music_pause,_default_music_forward,_default_music_back,_default_music_vup,_default_music_vdown,_default_music_focus_in,_default_music_focus_out)
+    fi = input("Set music track to : ")
+    band.setTrack(fi, MUSICSTATE.PLAYED)
+    while True:
+        if band.waitForNotifications(0.5):
+            continue
+    input("enter any key")
 
 if __name__ == "__main__":
     while True :
@@ -88,6 +116,7 @@ if __name__ == "__main__":
     single_heart_rate_item = FunctionItem ("Get Heart Rate",get_heart_rate)
     real_time_heart_rate_item = FunctionItem ("Get realtime heart rate data", get_realtime)
     set_time_item= FunctionItem ("Set the band's time to system time", set_time)
+    set_music_item = FunctionItem ("Set the band's music and receive music controls", set_music)
     dfu_update_item = FunctionItem ("Restore/Update Firmware", restore_firmware )
 
 
@@ -98,5 +127,6 @@ if __name__ == "__main__":
     menu.append_item(single_heart_rate_item)
     menu.append_item(real_time_heart_rate_item)
     menu.append_item(set_time_item)
+    menu.append_item(set_music_item)
     menu.append_item(dfu_update_item)
     menu.show()
