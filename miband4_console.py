@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/env python3
 import subprocess
 from cursesmenu import *
 from cursesmenu.items import *
@@ -12,11 +12,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--mac', required=True, help='Set mac address of the device')
 args = parser.parse_args()
 
-MAC_ADDR= args.mac
+MAC_ADDR = args.mac
 
-#ADD YOUR AUTH KEY HERE
-#mine was 3505642c77773c07e52efc326b58d9a0
-AUTH_KEY= b'\x44\x5c\x5c\x08\x8f\xb3\xc6\x0d\x05\x12\x47\x26\xeb\xa3\x9e\x8c'
+try:
+    with open("auth_key.txt", "r") as f:
+        auth_key = f.read().strip()
+        if 1 < len(auth_key) != 32:
+            print("Error:")
+            print("  Your AUTH KEY length is not 32, please check the format")
+            print("  Example of the AUTH KEY: 8fa9b42078627a654d22beff985655db")
+        AUTH_KEY = bytes.fromhex(auth_key)
+except FileNotFoundError:
+    AUTH_KEY = None
+    print("Warning:")
+    print("  To use additional features of this script please put your AUTH KEY to 'auth_key.txt'")
+    print("  Example of the AUTH KEY: 8fa9b42078627a654d22beff985655db")
+    print()
 
 #Needs Auth
 def get_step_count():
