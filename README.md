@@ -3,7 +3,7 @@
 ![Commit](https://img.shields.io/github/last-commit/satcar77/miband4) 
 ![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)
 
-# MIBAND 4 -Python Library
+# MIBAND 4 - Python Library
 
 > Library to interact with Xiaomi MiBand4. 
 > Tested only on linux.
@@ -62,13 +62,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
     sudo apt-get install libglib2.0-dev
     pip3 install -r requirements.txt
     ```
-2. (**Optional**) Find AuthKey for your device and set AUTH_KEY variable with hex string format in miband4_console.py. See AuthKey section. 
-	```
-    ...
-	#ADD YOUR AUTH KEY HERE
-	AUTH_KEY= b'\xa4\x1e\x52\x80\xe7\xed\x2a\x45\x8f\xf3\xb1\x5c\xb6\xa1\xf0\xd4'
-    ...
-	```
+2. (**Optional**) Find AuthKey for your device and put it to `auth_key.txt` file in the current directory with the script. 
 
 3.  Turn off your Bluetooth on your mobile device paired with MIBand 4
 
