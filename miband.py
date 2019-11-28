@@ -15,7 +15,7 @@ try:
 except NameError:
     xrange = range
 
-            
+
 class Delegate(DefaultDelegate):
     def __init__(self, device):
         DefaultDelegate.__init__(self)
@@ -65,7 +65,7 @@ class Delegate(DefaultDelegate):
             else:
                 print("Unexpected data on handle " + str(hnd) + ": " + str(data.encode("hex")))
                 return
-         # See start_get_previews_data(). Doesn't work as expected. Needs debugging. 
+         # See start_get_previews_data(). Doesn't work as expected. Needs debugging.
          # The activity characteristic sends the previews recorded information
          # from one given timestamp until now.
         elif hnd == self.device._char_activity.getHandle():
@@ -135,7 +135,7 @@ class Delegate(DefaultDelegate):
 class miband(Peripheral):
     _send_rnd_cmd = struct.pack('<2s', b'\x02\x00')
     _send_enc_key = struct.pack('<2s', b'\x03\x00')
-    pkg=0 #packing index 
+    pkg=0 #packing index
     def __init__(self, mac_address,key=None, timeout=0.5, debug=False):
         FORMAT = '%(asctime)-15s %(name)s (%(levelname)s) > %(message)s'
         logging.basicConfig(format=FORMAT)
@@ -143,7 +143,7 @@ class miband(Peripheral):
         self._log = logging.getLogger(self.__class__.__name__)
         self._log.setLevel(log_level)
 
-       
+
         self._log.info('Connecting to ' + mac_address)
         Peripheral.__init__(self, mac_address, addrType=ADDR_TYPE_PUBLIC)
         self._log.info('Connected')
@@ -165,7 +165,7 @@ class miband(Peripheral):
 
         self._char_heart_ctrl = self.svc_heart.getCharacteristics(UUIDS.CHARACTERISTIC_HEART_RATE_CONTROL)[0]
         self._char_heart_measure = self.svc_heart.getCharacteristics(UUIDS.CHARACTERISTIC_HEART_RATE_MEASURE)[0]
-        
+
         # Recorded information
         self._char_fetch = self.getCharacteristics(uuid=UUIDS.CHARACTERISTIC_FETCH)[0]
         self._desc_fetch = self._char_fetch.getDescriptors(forUUID=UUIDS.NOTIFICATION_DESCRIPTOR)[0]
@@ -212,7 +212,7 @@ class miband(Peripheral):
             self._desc_activity.write(b"\x00\x00", True)
         else:
             self._log.error("Something went wrong while changing the Fetch and Activity notifications status...")
-    
+
     def initialize(self):
         self._req_rdn()
 
@@ -232,18 +232,18 @@ class miband(Peripheral):
         self._log.info("Requesting random number...")
         self._char_auth.write(self._send_rnd_cmd)
         self.waitForNotifications(self.timeout)
-    
+
     def _send_enc_rdn(self, data):
         self._log.info("Sending encrypted random number")
         cmd = self._send_enc_key + self._encrypt(data)
         send_cmd = struct.pack('<18s', cmd)
         self._char_auth.write(send_cmd)
         self.waitForNotifications(self.timeout)
-    
+
     def _encrypt(self, message):
         aes = AES.new(self.auth_key, AES.MODE_ECB)
         return aes.encrypt(message)
-    
+
     def _get_from_queue(self, _type):
         try:
             res = self.queue.get(False)
@@ -272,13 +272,13 @@ class miband(Peripheral):
         if type == 5:
             base_value = '\x05\x01'
         elif type == 4:
-            base_value = '\x04\x01' 
+            base_value = '\x04\x01'
         elif type == 3:
                 base_value = '\x03\x01'
         svc = self.getServiceByUUID(UUIDS.SERVICE_ALERT_NOTIFICATION)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_CUSTOM_ALERT)[0]
         char.write(bytes(base_value+phone,'utf-8'), withResponse=True)
-    
+
     def get_steps(self):
         char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_STEPS)[0]
         a = char.read()
@@ -316,7 +316,7 @@ class miband(Peripheral):
         fractions256 = struct.unpack('b', bytes[8:9])[0] if len(bytes) >= 9 else None
 
         return {"date": datetime(*(year, month, day, hours, minutes, seconds)), "day_of_week": day_of_week, "fractions256": fractions256}
-    
+
     @staticmethod
     def create_date_data(date):
         data = struct.pack( 'hbbbbbbbxx', date.year, date.month, date.day, date.hour, date.minute, date.second, date.weekday(), 0 )
@@ -394,7 +394,7 @@ class miband(Peripheral):
     def set_current_time(self, date):
         char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CURRENT_TIME)[0]
         return char.write(self.create_date_data(date), True)
-    
+
     def set_heart_monitor_sleep_support(self, enabled=True, measure_minute_interval=1):
         char_m = self.svc_heart.getCharacteristics(UUIDS.CHARACTERISTIC_HEART_RATE_MEASURE)[0]
         char_d = char_m.getDescriptors(forUUID=UUIDS.NOTIFICATION_DESCRIPTOR)[0]
@@ -543,7 +543,7 @@ class miband(Peripheral):
     def writeChunked(self,type,data):
         MAX_CHUNKLENGTH = 17
         remaining = len(data)
-        count =0 
+        count =0
         while(remaining > 0):
             copybytes = min(remaining,MAX_CHUNKLENGTH)
             chunk=b''
@@ -554,7 +554,7 @@ class miband(Peripheral):
                     flag |= 0x40
             elif(count>0):
                 flag |= 0x40
-             
+
             chunk+=b'\x00'
             chunk+= bytes([flag|type])
             chunk+= bytes([count & 0xff])
@@ -565,7 +565,7 @@ class miband(Peripheral):
 
     def setTrack(self,track,state):
         self.track = track
-        self.pp_state = state     
+        self.pp_state = state
         self.setMusic()
 
     def setMusicCallback(self,play=None,pause=None,forward=None,backward=None,volumeup=None,volumedown=None,focusin=None,focusout=None):
@@ -603,5 +603,5 @@ class miband(Peripheral):
             buf+=bytes([0])
         self.writeChunked(3,buf)
 
-    
+
 
