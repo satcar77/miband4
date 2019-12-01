@@ -1,4 +1,5 @@
 *.pyc
 .vscode
 auth_key.txt
+mac.txt
 

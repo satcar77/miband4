@@ -7,7 +7,7 @@
 
 > Library to interact with Xiaomi MiBand4. 
 > Tested only on linux.
-![demo](https://github.com/satcar77/miband4/raw/master/screen/1.png)
+![demo](screen/1.png)
 
 ## Contributors 
 
