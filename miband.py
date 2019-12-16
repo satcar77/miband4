@@ -147,7 +147,7 @@ class miband(Peripheral):
         self._log.info('Connecting to ' + mac_address)
         Peripheral.__init__(self, mac_address, addrType=ADDR_TYPE_PUBLIC)
         self._log.info('Connected')
-       # self.setSecurityLevel(level = "medium")
+        self.setSecurityLevel(level = "medium")
         self.timeout = timeout
         self.mac_address = mac_address
         self.state = None
@@ -178,6 +178,7 @@ class miband(Peripheral):
         self._desc_music_notif = self._char_music_notif.getDescriptors(forUUID=UUIDS.NOTIFICATION_DESCRIPTOR)[0]
 
         self._auth_notif(True)
+        self.enable_music()
         self.waitForNotifications(0.1)
         self.setDelegate( Delegate(self) )
     def generateAuthKey(self):
