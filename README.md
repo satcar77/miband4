@@ -6,7 +6,7 @@
 # MIBAND 4 - Python Library
 
 > Library to interact with Xiaomi MiBand4. 
-> Tested only on linux.
+> Only works on linux.
 ![demo](screen/1.png)
 
 ## Contributors 
