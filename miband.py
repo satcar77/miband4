@@ -117,8 +117,8 @@ class Delegate(DefaultDelegate):
                 if(self.device._default_music_play):
                     self.device._default_music_play()
             elif(data[1:]==b'\x01'):
-                if(self.device._default_music_focus_in):
-                    self.device._default_music_focus_in()
+                if(self.device._default_music_pause):
+                    self.device._default_music_pause()
             elif(data[1:]==b'\x03'):
                 if(self.device._default_music_forward):
                     self.device._default_music_forward()
