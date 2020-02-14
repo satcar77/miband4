@@ -161,7 +161,16 @@ def set_music():
             continue
     input("enter any key")
 
-
+def activity_log_callback(timestamp,c,i,s,h):
+    print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
+    
+def get_activity_logs():
+    #gets activity log between two intervals.
+    temp = datetime.now()
+    band.get_activity_betwn_intervals(datetime(temp.year,temp.month,temp.day),datetime.now(),activity_log_callback)
+    while True:
+        band.waitForNotifications(0.2)
+    
 if __name__ == "__main__":
     success = False
     while not success:
@@ -188,6 +197,7 @@ if __name__ == "__main__":
     steps_item = FunctionItem("@ Get Steps/Meters/Calories/Fat Burned", get_step_count)
     single_heart_rate_item = FunctionItem("@ Get Heart Rate", get_heart_rate)
     real_time_heart_rate_item = FunctionItem("@ Get realtime heart rate data", get_realtime)
+    get_band_activity_data_item = FunctionItem("@ Get activity logs for a day", get_activity_logs)
     set_time_item= FunctionItem("@ Set the band's time to system time", set_time)
     dfu_update_item = FunctionItem("@ Restore/Update Firmware", restore_firmware)
 
@@ -196,6 +206,7 @@ if __name__ == "__main__":
     menu.append_item(call_item)
     menu.append_item(single_heart_rate_item)
     menu.append_item(real_time_heart_rate_item)
+    menu.append_item(get_band_activity_data_item)
     menu.append_item(set_time_item)
     menu.append_item(set_music_item)
     menu.append_item(dfu_update_item)

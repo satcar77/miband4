@@ -46,7 +46,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 - Firmware update/restore (This feature has the potential to brick your Mi Band 4. Do it at your own risk)
 - Retrieving steps count, calories count and fat burnt
 - Setting date and time
-
+- Fetching fitness data within certain intervals in past
 
 
 # Setup and demo
@@ -82,7 +82,6 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
 
 ## TODO
-- Fetching fitness data within certain intervals in past
 - Setting Alarm
 
 

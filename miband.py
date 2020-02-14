@@ -20,6 +20,7 @@ class Delegate(DefaultDelegate):
     def __init__(self, device):
         DefaultDelegate.__init__(self)
         self.device = device
+        self.pkg = 0
 
     def handleNotification(self, hnd, data):
         if hnd == self.device._char_auth.getHandle():
@@ -58,52 +59,39 @@ class Delegate(DefaultDelegate):
                 minute = struct.unpack("b", data[12:13])[0]
                 self.device.first_timestamp = datetime(year, month, day, hour, minute)
                 print("Fetch data from {}-{}-{} {}:{}".format(year, month, day, hour, minute))
+                self.pkg = 0 #reset the packing index
                 self.device._char_fetch.write(b'\x02', False)
             elif data[:3] == b'\x10\x02\x01':
-                self.device.active = False
-                return
-            else:
-                print("Unexpected data on handle " + str(hnd) + ": " + str(data.encode("hex")))
-                return
-         # See start_get_previews_data(). Doesn't work as expected. Needs debugging.
-         # The activity characteristic sends the previews recorded information
-         # from one given timestamp until now.
-        elif hnd == self.device._char_activity.getHandle():
-            print("length of data is "+str(len(data)))
-            if len(data) % 4 is not 1:
-                if self.device.last_timestamp > datetime.now() - timedelta(minutes=1):
-                    self.device.active = False
+                if self.device.last_timestamp > self.device.end_timestamp - timedelta(minutes=1):
+                    print("Finished fetching")
                     return
                 print("Trigger more communication")
                 time.sleep(1)
                 t = self.device.last_timestamp + timedelta(minutes=1)
                 self.device.start_get_previews_data(t)
+
+            elif data[:3] == b'\x10\x02\x04':
+                print("No more activity fetch possible")
+                return
             else:
-                pkg = self.device.pkg
-                self.device.pkg += 1
+                print("Unexpected data on handle " + str(hnd) + ": " + str(data))
+                return
+        elif hnd == self.device._char_activity.getHandle():
+            if len(data) % 4 is 1:
+                self.pkg += 1
                 i = 1
                 while i < len(data):
-                    index = int(pkg) * 4 + (i - 1) / 4
+                    index = int(self.pkg) * 4 + (i - 1) / 4
                     timestamp = self.device.first_timestamp + timedelta(minutes=index)
                     self.device.last_timestamp = timestamp
-                    category = struct.unpack("<B", data[i:i + 1])
+                    category = struct.unpack("<B", data[i:i + 1])[0]
                     intensity = struct.unpack("B", data[i + 1:i + 2])[0]
                     steps = struct.unpack("B", data[i + 2:i + 3])[0]
                     heart_rate = struct.unpack("B", data[i + 3:i + 4])[0]
-                    print("{}: category: {}; acceleration {}; steps {}; heart rate {};".format(
-                        timestamp.strftime('%d.%m - %H:%M'),
-                        category,
-                        intensity,
-                        steps,
-                        heart_rate)
-                    )
-
+                    if timestamp < self.device.end_timestamp:
+                        self.device.activity_callback(timestamp,category,intensity,steps,heart_rate)
                     i += 4
 
-                    d = datetime.now().replace(second=0, microsecond=0) - timedelta(minutes=1)
-                    if timestamp == d:
-                        self.device.active = False
-                        return
         #music controls
         elif(hnd == 74):
             if(data[1:] == b'\xe0'):
@@ -135,7 +123,6 @@ class Delegate(DefaultDelegate):
 class miband(Peripheral):
     _send_rnd_cmd = struct.pack('<2s', b'\x02\x00')
     _send_enc_key = struct.pack('<2s', b'\x03\x00')
-    pkg=0 #packing index
     def __init__(self, mac_address,key=None, timeout=0.5, debug=False):
         FORMAT = '%(asctime)-15s %(name)s (%(levelname)s) > %(message)s'
         logging.basicConfig(format=FORMAT)
@@ -147,7 +134,7 @@ class miband(Peripheral):
         self._log.info('Connecting to ' + mac_address)
         Peripheral.__init__(self, mac_address, addrType=ADDR_TYPE_PUBLIC)
         self._log.info('Connected')
-        self.setSecurityLevel(level = "medium")
+        #self.setSecurityLevel(level = "medium")
         self.timeout = timeout
         self.mac_address = mac_address
         self.state = None
@@ -179,6 +166,7 @@ class miband(Peripheral):
 
         self._auth_notif(True)
         self.enable_music()
+        self.activity_notif_enabled = False
         self.waitForNotifications(0.1)
         self.setDelegate( Delegate(self) )
     def generateAuthKey(self):
@@ -206,13 +194,13 @@ class miband(Peripheral):
             self._desc_fetch.write(b"\x01\x00", True)
             self._log.info("Enabling Activity Char notifications status...")
             self._desc_activity.write(b"\x01\x00", True)
-        elif not enabled:
+            self.activity_notif_enabled = True
+        else:
             self._log.info("Disabling Fetch Char notifications status...")
             self._desc_fetch.write(b"\x00\x00", True)
             self._log.info("Disabling Activity Char notifications status...")
             self._desc_activity.write(b"\x00\x00", True)
-        else:
-            self._log.error("Something went wrong while changing the Fetch and Activity notifications status...")
+            self.activity_notif_enabled = False
 
     def initialize(self):
         self._req_rdn()
@@ -523,20 +511,25 @@ class miband(Peripheral):
         self.heart_raw_callback = None
         self.accel_raw_callback = None
 
-# Doesn't work as intended. Working on this part
     def start_get_previews_data(self, start_timestamp):
-        self._auth_previews_data_notif(True)
-        self.waitForNotifications(0.1)
+        if not self.activity_notif_enabled:
+            self._auth_previews_data_notif(True)
+            self.waitForNotifications(0.1)
         print("Trigger activity communication")
         year = struct.pack("<H", start_timestamp.year)
-        month = struct.pack("<H", start_timestamp.month)[0]
-        day = struct.pack("<H", start_timestamp.day)[0]
-        hour = struct.pack("<H", start_timestamp.hour)[0]
-        minute = struct.pack("<H", start_timestamp.minute)[0]
+        month = struct.pack("b", start_timestamp.month)
+        day = struct.pack("b", start_timestamp.day)
+        hour = struct.pack("b", start_timestamp.hour)
+        minute = struct.pack("b", start_timestamp.minute)
         ts = year + month + day + hour + minute
-        trigger = b'\x01\x01' + ts + b'\x00\x08'
+        trigger = b'\x01\x01' + ts +b'\x00\x17'
         self._char_fetch.write(trigger, False)
         self.active = True
+    
+    def get_activity_betwn_intervals(self,start_timestamp, end_timestamp, callback ):
+        self.end_timestamp = end_timestamp
+        self.start_get_previews_data(start_timestamp)
+        self.activity_callback = callback
 
     def enable_music(self):
         self._desc_music_notif.write(b'\x01\x00')
