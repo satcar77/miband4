@@ -2,4 +2,5 @@
 .vscode
 auth_key.txt
 mac.txt
-
+test.py
+activity_log.txt

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# This script demonstrates the usage, capability and features of the library.
+
 import argparse
 import subprocess
 import time
@@ -163,9 +166,10 @@ def set_music():
 
 def activity_log_callback(timestamp,c,i,s,h):
     print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
-    
+
+#Needs auth    
 def get_activity_logs():
-    #gets activity log between two intervals.
+    #gets activity log for this day.
     temp = datetime.now()
     band.get_activity_betwn_intervals(datetime(temp.year,temp.month,temp.day),datetime.now(),activity_log_callback)
     while True:
