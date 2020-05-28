@@ -523,7 +523,9 @@ class miband(Peripheral):
         hour = struct.pack("b", start_timestamp.hour)
         minute = struct.pack("b", start_timestamp.minute)
         ts = year + month + day + hour + minute
-        trigger = b'\x01\x01' + ts +b'\x00\x17'
+        char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CURRENT_TIME)[0]
+        utc_offset = char.read()[9:11]
+        trigger = b'\x01\x01' + ts + utc_offset
         self._char_fetch.write(trigger, False)
         self.active = True
     
