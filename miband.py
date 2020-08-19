@@ -258,7 +258,7 @@ class miband(Peripheral):
             except Empty:
                 break
 
-    def send_custom_alert(self, type, phone):
+    def send_custom_alert(self, type, phone, msg):
         if type == 5:
             base_value = '\x05\x01'
         elif type == 4:
@@ -267,8 +267,10 @@ class miband(Peripheral):
                 base_value = '\x03\x01'
         svc = self.getServiceByUUID(UUIDS.SERVICE_ALERT_NOTIFICATION)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_CUSTOM_ALERT)[0]
-        char.write(bytes(base_value+phone,'utf-8'), withResponse=True)
-
+        # 3 new lines: space for the icon, two spaces for the time HH:MM
+        text = base_value+phone+'\x0a\x0a\x0a'+msg.replace('\\n','\n')
+        char.write(bytes(text,'utf-8'), withResponse=True)
+        
     def get_steps(self):
         char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_STEPS)[0]
         a = char.read()

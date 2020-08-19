@@ -96,14 +96,16 @@ def general_info():
 
 
 def send_notif():
-    msg = input ("Enter message or phone number to be displayed: ")
+    title = input ("Enter title or phone number to be displayed: ")
+    print ('Reminder: at Mi Band 4 you have 10 characters per line, and up to 6 lines')
+    msg = input ("Enter optional message to be displayed: ")
     ty= int(input ("1 for Message / 2 for Missed Call / 3 for Call: "))
     if(ty > 3 or ty < 1):
         print ('Invalid choice')
         time.sleep(2)
         return
     a=[5,4,3]
-    band.send_custom_alert(a[ty-1],msg)
+    band.send_custom_alert(a[ty-1],title,msg)
 
 
 # Needs Auth
