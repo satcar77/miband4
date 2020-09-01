@@ -265,12 +265,14 @@ class miband(Peripheral):
             base_value = '\x04\x01'
         elif type == 3:
                 base_value = '\x03\x01'
+        elif type == 1:
+            base_value = '\x01\x01'
         svc = self.getServiceByUUID(UUIDS.SERVICE_ALERT_NOTIFICATION)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_CUSTOM_ALERT)[0]
         # 3 new lines: space for the icon, two spaces for the time HH:MM
         text = base_value+phone+'\x0a\x0a\x0a'+msg.replace('\\n','\n')
         char.write(bytes(text,'utf-8'), withResponse=True)
-        
+
     def get_steps(self):
         char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_STEPS)[0]
         a = char.read()
