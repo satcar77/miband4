@@ -96,14 +96,16 @@ def general_info():
 
 
 def send_notif():
-    msg = input ("Enter message or phone number to be displayed: ")
-    ty= int(input ("1 for Message / 2 for Missed Call / 3 for Call: "))
-    if(ty > 3 or ty < 1):
+    title = input ("Enter title or phone number to be displayed: ")
+    print ('Reminder: at Mi Band 4 you have 10 characters per line, and up to 6 lines')
+    msg = input ("Enter optional message to be displayed: ")
+    ty= int(input ("1 for Mail / 2 for Message / 3 for Missed Call / 4 for Call: "))
+    if(ty > 4 or ty < 1):
         print ('Invalid choice')
         time.sleep(2)
         return
-    a=[5,4,3]
-    band.send_custom_alert(a[ty-1],msg)
+    a=[1,5,4,3]
+    band.send_custom_alert(a[ty-1],title,msg)
 
 
 # Needs Auth
@@ -196,7 +198,7 @@ if __name__ == "__main__":
         
     menu = CursesMenu("MIBand4", "Features marked with @ require Auth Key")
     info_item = FunctionItem("Get general info of the device", general_info)
-    call_item = FunctionItem("Send Call/ Missed Call/Message", send_notif)
+    call_item = FunctionItem("Send Mail/ Call/ Missed Call/ Message", send_notif)
     set_music_item = FunctionItem("Set the band's music and receive music controls", set_music)
     steps_item = FunctionItem("@ Get Steps/Meters/Calories/Fat Burned", get_step_count)
     single_heart_rate_item = FunctionItem("@ Get Heart Rate", get_heart_rate)
