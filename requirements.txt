@@ -1,4 +1,3 @@
 bluepy
 pycrypto
 curses-menu
-crc16

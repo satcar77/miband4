@@ -9,6 +9,10 @@
 > Only works on linux.
 ![demo](screen/1.png)
 
+## Updates(10/27/2020)
+- (New Feature) Custom watchface files(.bin) support. 
+- Firmware restore/update fixes.
+
 ## Contributors 
 
  MiBand 4 provides superset of services provided by MiBand 2/3. For the services that were similar for both devices, the bluetooth characteristics, UUIDs  and request/response byte sequence were the same. Therefore,  I utilized some of the informations already uncovered by [Freeyourgadget team](https://github.com/Freeyourgadget/Gadgetbridge) and made use of the code by [Andrey Nikishaev](https://github.com/creotiv) for MiBand2. I reverse engineered snooped ACL packets to fill in the pieces of the puzzle. 
@@ -42,6 +46,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 - Sending music title and music state(Playing/Paused)
 - Recieve music control events (Play/Pause/Forward/Backward/Volume Up/Volume Down/Enter Music app/ Exit Music app) through callbacks
 ### Features that needs authkey
+- Updating watchface of the band
 - Retrieving heart rate (Realtime and Single time)
 - Firmware update/restore (This feature has the potential to brick your Mi Band 4. Do it at your own risk)
 - Retrieving steps count, calories count and fat burnt

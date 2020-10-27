@@ -7,6 +7,10 @@ from datetime import datetime, timedelta
 from Crypto.Cipher import AES
 from datetime import datetime
 try:
+    import zlib
+except ImportError:
+    print("zlib module not found. Updating watchface/firmware requires zlib")
+try:
     from Queue import Queue, Empty
 except ImportError:
     from queue import Queue, Empty
@@ -77,7 +81,7 @@ class Delegate(DefaultDelegate):
                 print("Unexpected data on handle " + str(hnd) + ": " + str(data))
                 return
         elif hnd == self.device._char_activity.getHandle():
-            if len(data) % 4 is 1:
+            if len(data) % 4 == 1:
                 self.pkg += 1
                 i = 1
                 while i < len(data):
@@ -372,6 +376,12 @@ class miband(Peripheral):
             self._char_heart_ctrl.write(b'\x14' + str(measure_minute_interval).encode(), True)
         char_d.write(b'\x00\x00', True)
 
+    def _enable_fw_notification(self):
+        svc = self.getServiceByUUID(UUIDS.SERVICE_DFU_FIRMWARE)
+        char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_DFU_FIRMWARE)[0]
+        des = char.getDescriptors(forUUID = UUIDS.NOTIFICATION_DESCRIPTOR)[0]
+        des.write(b"\x01\x00", True)
+
     def get_serial(self):
         svc = self.getServiceByUUID(UUIDS.SERVICE_DEVICE_INFO)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_SERIAL)[0]
@@ -402,51 +412,38 @@ class miband(Peripheral):
             self._char_heart_ctrl.write(b'\x14' + str(measure_minute_interval).encode(), True)
         char_d.write(b'\x00\x00', True)
 
-    def dfuUpdate(self, fileName):
-        print('Update Firmware/Resource')
+    def dfuUpdate(self,fileName):
+        print('Update Watchface/Firmware')
         svc = self.getServiceByUUID(UUIDS.SERVICE_DFU_FIRMWARE)
         char = svc.getCharacteristics(UUIDS.CHARACTERISTIC_DFU_FIRMWARE)[0]
+        char_write = svc.getCharacteristics(UUIDS.CHARACTERISTIC_DFU_FIRMWARE_WRITE)[0]
+        # self._enable_fw_notification()
+        # self.setDelegate(TestDelegate(self))
         extension = os.path.splitext(fileName)[1][1:]
         fileSize = os.path.getsize(fileName)
         # calculating crc checksum of firmware
-        #crc16
-        crc = 0xFFFF
-        with open(fileName) as f:
+        #crc32
+        crc=0xFFFF
+        with open(fileName,"rb") as f:
+            crc = zlib.crc32(f.read())
+        print('CRC32 Value is-->', crc)
+        # input('Press Enter to Continue')
+        payload = b'\x01\x08'+struct.pack("<I",fileSize)[:-1]+b'\x00'+struct.pack("<I",crc)
+        char.write(payload,withResponse=True)
+        self.waitForNotifications(2)
+        char.write(b'\x03\x01',withResponse=True)
+        with open(fileName,"rb") as f:
             while True:
-                c = f.read(1)
+                c = f.read(20) #takes 20 bytes 
                 if not c:
+                    print ("Bytes written successfully. Wait till sync finishes")
                     break
-                cInt = int(c.encode('hex'), 16) #converting hex to int
-                # now calculate crc
-                crc = ((crc >> 8) | (crc << 8)) & 0xFFFF
-                crc ^= (cInt & 0xff)
-                crc ^= ((crc & 0xff) >> 4)
-                crc ^= (crc << 12) & 0xFFFF
-                crc ^= ((crc & 0xFF) << 5) & 0xFFFFFF
-        crc &= 0xFFFF
-        print('CRC Value is-->', crc)
-        input('Press Enter to Continue')
-        if extension.lower() == "res":
-            # file size hex value is
-            char.write(b'\x01'+ struct.pack("<i", fileSize)[:-1] + b'\x02', withResponse=True)
-        elif extension.lower() == "fw":
-            char.write(b'\x01' + struct.pack("<i", fileSize)[:-1], withResponse=True)
-        char.write(b'\x03', withResponse=True)
-        char1 = svc.getCharacteristics(UUIDS.CHARACTERISTIC_DFU_FIRMWARE_WRITE)[0]
-        with open(fileName) as f:
-          while True:
-            c = f.read(20) #takes 20 bytes :D
-            if not c:
-              print ("Update Over")
-              break
-            print('Writing Resource', c.encode('hex'))
-            char1.write(c)
-        # after update is done send these values
+                char_write.write(c)
+        # # after update is done send these values
         char.write(b'\x00', withResponse=True)
-        self.waitForNotifications(0.5)
-        print('CheckSum is --> ', hex(crc & 0xFF), hex((crc >> 8) & 0xFF))
-        checkSum = b'\x04' + bytes(chr(crc & 0xFF),'utf-8') + bytes(chr((crc >> 8) & 0xFF),'utf-8')
-        char.write(checkSum, withResponse=True)
+        self.waitForNotifications(2)
+        char.write(b'\x04', withResponse=True)
+        self.waitForNotifications(2)
         if extension.lower() == "fw":
             self.waitForNotifications(0.5)
             char.write(b'\x05', withResponse=True)

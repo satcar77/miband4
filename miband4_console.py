@@ -97,7 +97,7 @@ def general_info():
 
 def send_notif():
     title = input ("Enter title or phone number to be displayed: ")
-    print ('Reminder: at Mi Band 4 you have 10 characters per line, and up to 6 lines')
+    print ('Reminder: at Mi Band 4 you have 10 characters per line, and up to 6 lines. To add a new line use new line character \n')
     msg = input ("Enter optional message to be displayed: ")
     ty= int(input ("1 for Mail / 2 for Message / 3 for Missed Call / 4 for Call: "))
     if(ty > 4 or ty < 1):
@@ -129,6 +129,12 @@ def restore_firmware():
     print("This feature has the potential to brick your Mi Band 4. You are doing this at your own risk.")
     path = input("Enter the path of the firmware file :")
     band.dfuUpdate(path)
+
+# Needs Auth
+def update_watchface():
+    path = input("Enter the path of the watchface .bin file :")
+    band.dfuUpdate(path)
+
 
 
 # Needs Auths
@@ -205,8 +211,9 @@ if __name__ == "__main__":
     real_time_heart_rate_item = FunctionItem("@ Get realtime heart rate data", get_realtime)
     get_band_activity_data_item = FunctionItem("@ Get activity logs for a day", get_activity_logs)
     set_time_item= FunctionItem("@ Set the band's time to system time", set_time)
+    update_watchface_item = FunctionItem("@ Update Watchface", update_watchface)
     dfu_update_item = FunctionItem("@ Restore/Update Firmware", restore_firmware)
-
+    
     menu.append_item(info_item)
     menu.append_item(steps_item)
     menu.append_item(call_item)
@@ -215,5 +222,6 @@ if __name__ == "__main__":
     menu.append_item(get_band_activity_data_item)
     menu.append_item(set_time_item)
     menu.append_item(set_music_item)
+    menu.append_item(update_watchface_item)
     menu.append_item(dfu_update_item)
     menu.show()
