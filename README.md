@@ -65,7 +65,7 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
     ```
     sudo apt-get install libglib2.0-dev
-    pip3 install -r requirements.txt
+    sudo pip3 install -r requirements.txt
     ```
 2. (**Optional**) Find AuthKey for your device and put it to `auth_key.txt` file in the current directory with the script. 
 
