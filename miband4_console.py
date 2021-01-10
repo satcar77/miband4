@@ -223,7 +223,7 @@ if __name__ == "__main__":
     set_time_item= FunctionItem("@ Set the band's time to system time", set_time)
     update_watchface_item = FunctionItem("@ Update Watchface", update_watchface)
     dfu_update_item = FunctionItem("@ Restore/Update Firmware", restore_firmware)
-    get_raw_accel_item = FunctionItem("@ Get raw accelerometer data)", get_raw_accel)
+    get_raw_accel_item = FunctionItem("@ Get raw accelerometer data", get_raw_accel)
 
     menu.append_item(info_item)
     menu.append_item(steps_item)
