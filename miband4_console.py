@@ -117,6 +117,9 @@ def get_heart_rate():
 def heart_logger(data):
     print ('Realtime heart BPM:', data)
 
+def accel_logger(data):
+    for x in data:
+        print(x)
 
 # Needs Auth
 def get_realtime():
@@ -175,6 +178,13 @@ def set_music():
 def activity_log_callback(timestamp,c,i,s,h):
     print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
 
+def get_raw_accel():
+    band.start_accel_realtime(accel_raw_callback=accel_logger)
+    input('Press enter to continue')
+
+
+
+
 #Needs auth    
 def get_activity_logs():
     #gets activity log for this day.
@@ -213,7 +223,8 @@ if __name__ == "__main__":
     set_time_item= FunctionItem("@ Set the band's time to system time", set_time)
     update_watchface_item = FunctionItem("@ Update Watchface", update_watchface)
     dfu_update_item = FunctionItem("@ Restore/Update Firmware", restore_firmware)
-    
+    get_raw_accel_item = FunctionItem("@ Get raw accelerometer data)", get_raw_accel)
+
     menu.append_item(info_item)
     menu.append_item(steps_item)
     menu.append_item(call_item)
@@ -224,4 +235,5 @@ if __name__ == "__main__":
     menu.append_item(set_music_item)
     menu.append_item(update_watchface_item)
     menu.append_item(dfu_update_item)
+    menu.append_item(get_raw_accel_item)
     menu.show()

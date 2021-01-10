@@ -95,6 +95,10 @@ class Delegate(DefaultDelegate):
                     if timestamp < self.device.end_timestamp:
                         self.device.activity_callback(timestamp,category,intensity,steps,heart_rate)
                     i += 4
+        #Raw accel handling
+        elif hnd == self.device._char_hz.getHandle():
+            if len(data) == 20 and struct.unpack('b', data[0:1])[0] == 1:
+                self.device.queue.put((QUEUE_TYPES.RAW_ACCEL, data))
 
         #music controls
         elif(hnd == 74):
@@ -168,6 +172,12 @@ class miband(Peripheral):
         self._char_chunked = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CHUNKED_TRANSFER)[0]
         self._char_music_notif= self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_MUSIC_NOTIFICATION)[0]
         self._desc_music_notif = self._char_music_notif.getDescriptors(forUUID=UUIDS.NOTIFICATION_DESCRIPTOR)[0]
+
+        #raw sensor access
+        self._char_hz = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_HZ)[0]
+        self._char_sensor = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_SENSOR)[0]
+        self._char_steps = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_STEPS)[0]
+
 
         self._auth_notif(True)
         self.enable_music()
@@ -600,6 +610,32 @@ class miband(Peripheral):
             buf+=bytes(track,'utf-8')
             buf+=bytes([0])
         self.writeChunked(3,buf)
+
+    def start_accel_realtime(self, accel_raw_callback):
+        steps_handle = self._char_steps.getHandle() + 1
+        sensor_handle = self._char_sensor.getHandle() + 1
+        hz_handle = self._char_hz.getHandle() + 1
+
+        self.accel_raw_callback = accel_raw_callback
+
+        self.writeCharacteristic(steps_handle, b'\x00\x00', withResponse=True)
+        self.writeCharacteristic(sensor_handle, b'\x01\x00', withResponse=True)
+        self.writeCharacteristic(hz_handle, b'\x01\x00', withResponse=True)
+        self._char_sensor.write(b'\x01\x01\x19', withResponse=False)
+        self.writeCharacteristic(sensor_handle, b'\x00\x00', withResponse=True)
+        self._char_sensor.write(b'\x02', withResponse=False)
+
+        while self.waitForNotifications(1):
+            self._parse_queue()
+
+    def stop_accel_realtime(self):
+        steps_handle = self._char_steps.getHandle() + 1
+        sensor_handle = self._char_sensor.getHandle() + 1
+        hz_handle = self._char_hz.getHandle() + 1
+
+        self.writeCharacteristic(hz_handle, b'\x00\x00', withResponse=True)
+        self._char_sensor.write(b'\x03', withResponse=False)
+        self.writeCharacteristic(steps_handle, b'\x00\x00', withResponse=True)
 
 
 
