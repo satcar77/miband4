@@ -152,6 +152,6 @@ class QUEUE_TYPES(object):
     __metaclass__ = Immutable
 
     HEART = 'heart'
-    RAW_GYRO = 'raw_hyro'
+    RAW_GYRO = 'raw_gyro'
     RAW_HEART = 'raw_heart'
     AVG_GYRO = 'avg_gyro'
