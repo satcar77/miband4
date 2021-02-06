@@ -55,6 +55,70 @@ class UUIDS(object):
     CHARACTERISTIC_DFU_FIRMWARE = "00001531-0000-3512-2118-0009af100700"
     CHARACTERISTIC_DFU_FIRMWARE_WRITE = "00001532-0000-3512-2118-0009af100700"
 
+
+class BYTEPATTERNS(object):
+
+    __metaclass__ = Immutable
+
+    vibration_hex = 'ff{:02x}00000001'
+    vibration_stop_hex = 'ff0000000000'
+
+    gyro_start_hex = '01{:02x}19'
+    start_hex = '0100'
+    stop_hex = '0000'
+
+    heart_measure_keepalive_hex = '16'
+    stop_heart_measure_continues_hex = '150100'
+    start_heart_measure_continues_hex = '150101'
+    stop_heart_measure_manual_hex = '150200'
+
+    fetch_begin_hex = '100101'
+    fetch_error_hex = '100104'
+    fetch_continue_hex = '100201'
+    fetch_complete_hex = '100204'
+
+    auth_ok_hex = '100301'
+    request_random_number_hex = '0200'
+    auth_key_prefix_hex = '0300'
+
+    alert_none_hex = '00'
+    alert_message_hex = '01'
+    alert_phone_hex = '02'
+
+    def vibration(duration):
+        if duration == 0:
+            byte_pattern = BYTEPATTERNS.vibration_stop_hex
+        else:
+            byte_pattern = BYTEPATTERNS.vibration_hex
+        return bytes.fromhex(byte_pattern.format(duration))
+
+    def gyro_start(sensitivity):
+        #sensitivity should be from 1 to 3
+        byte_pattern = BYTEPATTERNS.gyro_start_hex
+        return bytes.fromhex(byte_pattern.format(sensitivity))
+
+    start = bytes.fromhex(start_hex)
+    stop = bytes.fromhex(stop_hex)
+
+    heart_measure_keepalive = bytes.fromhex(heart_measure_keepalive_hex)
+    stop_heart_measure_continues = bytes.fromhex(stop_heart_measure_continues_hex)
+    start_heart_measure_continues = bytes.fromhex(start_heart_measure_continues_hex)
+    stop_heart_measure_manual = bytes.fromhex(stop_heart_measure_manual_hex)
+
+    fetch_begin = bytes.fromhex(fetch_begin_hex)
+    fetch_error = bytes.fromhex(fetch_error_hex)
+    fetch_continue = bytes.fromhex(fetch_continue_hex)
+    fetch_complete = bytes.fromhex(fetch_complete_hex)
+
+    auth_ok = bytes.fromhex(auth_ok_hex)
+    request_random_number = bytes.fromhex(request_random_number_hex)
+    auth_key_prefix = bytes.fromhex(auth_key_prefix_hex)
+
+    alert_none = bytes.fromhex(alert_none_hex)
+    alert_message = bytes.fromhex(alert_message_hex)
+    alert_phone = bytes.fromhex(alert_phone_hex)
+
+
 class AUTH_STATES(object):
 
     __metaclass__ = Immutable
@@ -70,9 +134,10 @@ class ALERT_TYPES(object):
 
     __metaclass__ = Immutable
 
-    NONE = '\x00'
-    MESSAGE = '\x01'
-    PHONE = '\x02'
+    NONE = BYTEPATTERNS.alert_none
+    MESSAGE = BYTEPATTERNS.alert_message
+    PHONE = BYTEPATTERNS.alert_phone
+
 
 class MUSICSTATE(object):
 
@@ -81,10 +146,12 @@ class MUSICSTATE(object):
     PLAYED = 0
     PAUSED = 1
 
+
 class QUEUE_TYPES(object):
 
     __metaclass__ = Immutable
 
     HEART = 'heart'
-    RAW_ACCEL = 'raw_accel'
+    RAW_GYRO = 'raw_gyro'
     RAW_HEART = 'raw_heart'
+    AVG_GYRO = 'avg_gyro'
