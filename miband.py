@@ -561,9 +561,16 @@ class miband(Peripheral):
             self._char_chunked.write(chunk)
             remaining-=copybytes
 
-    def setTrack(self,track,state):
-        self.track = track
+    def setTrack(self, state, artist=None, album=None, track=None,
+                 volume=None,
+                 position=None, duration=None):
         self.pp_state = state
+        self.artist = artist
+        self.album = album
+        self.track = track
+        self.position = position
+        self.duration = duration
+        self.volume = volume
         self.setMusic()
 
     def setMusicCallback(self,play=None,pause=None,forward=None,backward=None,volumeup=None,volumedown=None,focusin=None,focusout=None):
@@ -585,21 +592,34 @@ class miband(Peripheral):
             self._default_music_focus_out = focusout
 
     def setMusic(self):
-        track = self.track
-        state = self.pp_state
-        # st=b"\x01\x00\x01\x00\x00\x00\x01\x00"
-        #self.writeChunked(3,st)
         flag = 0x00
-        flag |=0x01
-        length =8
-        if(len(track)>0):
-            length+=len(track.encode('utf-8'))
-            flag |=0x0e
-        buf = bytes([flag])+bytes([state])+bytes([1,0,0,0])+bytes([1,0])
-        if(len(track)>0):
-            buf+=bytes(track,'utf-8')
-            buf+=bytes([0])
-        self.writeChunked(3,buf)
+        flag |= 0x01
 
+        buf = b''
+        null = b'\x00'
+        if self.artist is not None:
+            flag |= 0x02
+            buf += self.artist.encode('utf-8') + null
+        if self.album is not None:
+            flag |= 0x04
+            buf += self.album.encode('utf-8') + null
+        if self.track is not None:
+            flag |= 0x08
+            buf += self.track.encode('utf-8') + null
+        if self.duration is not None:
+            flag |= 0x10
+            val = struct.pack('<H', self.duration)
+            buf += val
+        if self.volume is not None:
+            # volume goes from 0 to 100
+            flag |= 0x40
+            val = bytes([self.volume])
+            buf += val + null
 
+        if self.position is not None:
+            position = struct.pack('<H', self.position)
+        else:
+            position = null + null
 
+        buf = bytes([flag, self.pp_state, 0x00]) + position + buf
+        self.writeChunked(3, buf)
