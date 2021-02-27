@@ -323,7 +323,7 @@ class miband(Peripheral):
     def _parse_battery_response(self, bytes):
         level = struct.unpack('b', bytes[1:2])[0] if len(bytes) >= 2 else None
         last_level = struct.unpack('b', bytes[19:20])[0] if len(bytes) >= 20 else None
-        status = 'normal' if struct.unpack('b', bytes[2:3])[0] == b'0' else "charging"
+        status = 'normal' if struct.unpack('b', bytes[2:3])[0] == 0x0 else "charging"
         datetime_last_charge = self._parse_date(bytes[11:18])
         datetime_last_off = self._parse_date(bytes[3:10])
 
