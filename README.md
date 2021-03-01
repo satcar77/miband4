@@ -9,6 +9,9 @@
 > Only works on linux.
 ![demo](screen/1.png)
 
+## Updates(3/1/2021)
+- Alarm functionality. 
+
 ## Updates(10/27/2020)
 - (New Feature) Custom watchface files(.bin) support. 
 - Firmware restore/update fixes.
@@ -83,11 +86,6 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
     ```
     python3 miband4_console.py -m MAC_ADDRESS 
 	```
-
-
-
-## TODO
-- Setting Alarm
 
 
 
