@@ -88,3 +88,16 @@ class QUEUE_TYPES(object):
     HEART = 'heart'
     RAW_ACCEL = 'raw_accel'
     RAW_HEART = 'raw_heart'
+
+class Weekdays(object):
+
+    __metaclass__ = Immutable
+
+    monday    = 0x01 << 0
+    tuesday   = 0x01 << 1
+    wednesday = 0x01 << 2
+    thursday  = 0x01 << 3
+    friday    = 0x01 << 4
+    saturday  = 0x01 << 5
+    sunday    = 0x01 << 6
+    everyday  = 0x01 << 7

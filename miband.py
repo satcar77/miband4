@@ -584,6 +584,27 @@ class miband(Peripheral):
         if focusout is not None:
             self._default_music_focus_out = focusout
 
+    def setAlarm(self, hour, minute, days=(), enabled=True, snooze=True,
+                 alarm_id=0):
+        '''Set an alarm at HOUR and MINUTE, on DAYS days.  Up to 3 alarms can be set.
+        ENABLED can be used to remove an alarm.
+        When SNOOZE is True, the alarm band will display a snooze button.'''
+        char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CONFIGURATION)[0]
+
+        alarm_tag = alarm_id
+        if enabled:
+            alarm_tag |= 0x80
+            if not snooze:
+                alarm_tag |= 0x40
+
+        repetition_mask = 0x00
+        for day in days:
+            repetition_mask |= day
+
+        packet = struct.pack("5B", 2, alarm_tag, hour, minute, repetition_mask)
+        val = char.write(packet)
+        return val
+
     def setMusic(self):
         track = self.track
         state = self.pp_state
