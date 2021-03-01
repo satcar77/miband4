@@ -174,8 +174,26 @@ class miband(Peripheral):
         self._auth_notif(True)
         self.enable_music()
         self.activity_notif_enabled = False
+
+        # set fallback callbacks before delegate starts
+        self.init_empty_callbacks()
+
+        # start delegate
         self.waitForNotifications(0.1)
         self.setDelegate( Delegate(self) )
+
+    def init_empty_callbacks(self):
+        def fallback():
+            return
+        self._default_music_play = fallback
+        self._default_music_pause = fallback
+        self._default_music_forward = fallback
+        self._default_music_back = fallback
+        self._default_music_vdown = fallback
+        self._default_music_vup = fallback
+        self._default_music_focus_in = fallback
+        self._default_music_focus_out = fallback
+
     def generateAuthKey(self):
         if(self.authKey):
             return struct.pack('<18s',b'\x01\x00'+ self.auth_key)
