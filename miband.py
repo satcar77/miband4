@@ -96,10 +96,19 @@ class Delegate(DefaultDelegate):
                         self.device.activity_callback(timestamp,category,intensity,steps,heart_rate)
                     i += 4
 
-        #music controls
+        #music controls & lost device
         elif(hnd == 74):
             cmd = data[1:][0]
             if cmd == 0xe0:
+            if data[0] == 0x08:
+                # Start ringing
+                self.device.writeDisplayCommand([0x14, 0x00, 0x00])
+                self.device._default_lost_device()
+            elif data[0] == 0x0f:
+                # Stop ringing
+                self.device.writeDisplayCommand([0x14, 0x00, 0x01])
+                self.device._default_found_device()
+            elif cmd == 0xe0:
                 self.device.setMusic()
                 if(self.device._default_music_focus_in):
                     self.device._default_music_focus_in()
@@ -193,6 +202,9 @@ class miband(Peripheral):
         self._default_music_vup = fallback
         self._default_music_focus_in = fallback
         self._default_music_focus_out = fallback
+
+        self._default_lost_device = fallback
+        self._default_found_device = fallback
 
     def generateAuthKey(self):
         if(self.authKey):
@@ -581,6 +593,14 @@ class miband(Peripheral):
             self._char_chunked.write(chunk)
             remaining-=copybytes
 
+    def writeDisplayCommand(self, cmd):
+        '''Many display-related commands write to this endpoint.  This is a
+        simple helper used by those function.'''
+
+        char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CONFIGURATION)[0]
+        endpoint = b'\x06'
+        char.write(endpoint + bytes(cmd))
+
     def setTrack(self, state, artist=None, album=None, track=None,
                  volume=None,
                  position=None, duration=None):
@@ -610,6 +630,12 @@ class miband(Peripheral):
             self._default_music_focus_in = focusin
         if focusout is not None:
             self._default_music_focus_out = focusout
+
+    def setLostDeviceCallback(self, lost=None, found=None):
+        if lost is not None:
+            self._default_lost_device = lost
+        if found is not None:
+            self._default_found_device = found
 
     def setAlarm(self, hour, minute, days=(), enabled=True, snooze=True,
                  alarm_id=0):
