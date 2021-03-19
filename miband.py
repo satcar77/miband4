@@ -317,13 +317,13 @@ class miband(Peripheral):
 
     @staticmethod
     def create_date_data(date):
-        data = struct.pack( 'hbbbbbbbxx', date.year, date.month, date.day, date.hour, date.minute, date.second, date.weekday(), 0 )
+        data = struct.pack( 'hbbbbbbbxx', date.year, date.month, date.day, date.hour, date.minute, date.second, date.isoweekday(), 0 )
         return data
 
     def _parse_battery_response(self, bytes):
         level = struct.unpack('b', bytes[1:2])[0] if len(bytes) >= 2 else None
         last_level = struct.unpack('b', bytes[19:20])[0] if len(bytes) >= 20 else None
-        status = 'normal' if struct.unpack('b', bytes[2:3])[0] == b'0' else "charging"
+        status = 'normal' if struct.unpack('b', bytes[2:3])[0] == 0x0 else "charging"
         datetime_last_charge = self._parse_date(bytes[11:18])
         datetime_last_off = self._parse_date(bytes[3:10])
 
