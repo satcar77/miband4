@@ -96,33 +96,44 @@ class Delegate(DefaultDelegate):
                         self.device.activity_callback(timestamp,category,intensity,steps,heart_rate)
                     i += 4
 
-        #music controls
+        #music controls & lost device
         elif(hnd == 74):
-            if(data[1:] == b'\xe0'):
+            cmd = data[1:][0]
+            if cmd == 0xe0:
+            if data[0] == 0x08:
+                # Start ringing
+                self.device.writeDisplayCommand([0x14, 0x00, 0x00])
+                self.device._default_lost_device()
+            elif data[0] == 0x0f:
+                # Stop ringing
+                self.device.writeDisplayCommand([0x14, 0x00, 0x01])
+                self.device._default_found_device()
+            elif cmd == 0xe0:
                 self.device.setMusic()
                 if(self.device._default_music_focus_in):
                     self.device._default_music_focus_in()
-            elif(data[1:]==b'\xe1'):
+            elif cmd == 0xe1:
                 if(self.device._default_music_focus_out):
                     self.device._default_music_focus_out()
-            elif(data[1:]==b'\x00'):
+            elif cmd == 0x00:
                 if(self.device._default_music_play):
                     self.device._default_music_play()
-            elif(data[1:]==b'\x01'):
+            elif cmd == 0x01:
                 if(self.device._default_music_pause):
                     self.device._default_music_pause()
-            elif(data[1:]==b'\x03'):
+            elif cmd == 0x03:
                 if(self.device._default_music_forward):
                     self.device._default_music_forward()
-            elif(data[1:]==b'\x04'):
+            elif cmd == 0x04:
                 if(self.device._default_music_back):
                     self.device._default_music_back()
-            elif(data[1:]==b'\x05'):
+            elif cmd == 0x05:
                 if(self.device._default_music_vup):
                     self.device._default_music_vup()
-            elif(data[1:]==b'\x06'):
+            elif cmd == 0x06:
                 if(self.device._default_music_vdown):
                     self.device._default_music_vdown()
+
 
 class miband(Peripheral):
     _send_rnd_cmd = struct.pack('<2s', b'\x02\x00')
@@ -172,8 +183,29 @@ class miband(Peripheral):
         self._auth_notif(True)
         self.enable_music()
         self.activity_notif_enabled = False
+
+        # set fallback callbacks before delegate starts
+        self.init_empty_callbacks()
+
+        # start delegate
         self.waitForNotifications(0.1)
         self.setDelegate( Delegate(self) )
+
+    def init_empty_callbacks(self):
+        def fallback():
+            return
+        self._default_music_play = fallback
+        self._default_music_pause = fallback
+        self._default_music_forward = fallback
+        self._default_music_back = fallback
+        self._default_music_vdown = fallback
+        self._default_music_vup = fallback
+        self._default_music_focus_in = fallback
+        self._default_music_focus_out = fallback
+
+        self._default_lost_device = fallback
+        self._default_found_device = fallback
+
     def generateAuthKey(self):
         if(self.authKey):
             return struct.pack('<18s',b'\x01\x00'+ self.auth_key)
@@ -561,6 +593,14 @@ class miband(Peripheral):
             self._char_chunked.write(chunk)
             remaining-=copybytes
 
+    def writeDisplayCommand(self, cmd):
+        '''Many display-related commands write to this endpoint.  This is a
+        simple helper used by those function.'''
+
+        char = self.svc_1.getCharacteristics(UUIDS.CHARACTERISTIC_CONFIGURATION)[0]
+        endpoint = b'\x06'
+        char.write(endpoint + bytes(cmd))
+
     def setTrack(self, state, artist=None, album=None, track=None,
                  volume=None,
                  position=None, duration=None):
@@ -590,6 +630,12 @@ class miband(Peripheral):
             self._default_music_focus_in = focusin
         if focusout is not None:
             self._default_music_focus_out = focusout
+
+    def setLostDeviceCallback(self, lost=None, found=None):
+        if lost is not None:
+            self._default_lost_device = lost
+        if found is not None:
+            self._default_found_device = found
 
     def setAlarm(self, hour, minute, days=(), enabled=True, snooze=True,
                  alarm_id=0):
