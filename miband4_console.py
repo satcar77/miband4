@@ -163,10 +163,15 @@ def _default_music_focus_out():
     print("Music focus out")    
 
 
-def set_music():
+def set_music(): 
     band.setMusicCallback(_default_music_play,_default_music_pause,_default_music_forward,_default_music_back,_default_music_vup,_default_music_vdown,_default_music_focus_in,_default_music_focus_out)
-    fi = input("Set music track to : ")
-    band.setTrack(fi, MUSICSTATE.PLAYED)
+    fi = input("Set music track artist to : ")
+    fj = input("Set music track album to: ")
+    fk = input("Set music track title to: ")
+    fl = int(input("Set music volume: "))
+    fm = int(input("Set music position: "))
+    fn = int(input("Set music duration: "))
+    band.setTrack(MUSICSTATE.PLAYED,fi,fj,fk,fl,fm,fn)
     while True:
         if band.waitForNotifications(0.5):
             continue
