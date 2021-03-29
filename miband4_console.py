@@ -4,6 +4,7 @@
 
 import argparse
 import subprocess
+import shutil
 import time
 from datetime import datetime
 
@@ -177,6 +178,34 @@ def set_music():
             continue
     input("enter any key")
 
+
+def lost_device():
+    found = False
+    notify = shutil.which("notify-send") is not None
+
+    def lost_device_callback():
+        if notify:
+            subprocess.call(["notify-send", "Device Lost"])
+        else:
+            print("Searching for this device")
+        print('Click on the icon on the band to stop searching')
+
+    def found_device_callback():
+        nonlocal found
+        if notify:
+            subprocess.call(["notify-send", "Found device"])
+        else:
+            print("Searching for this device")
+        found = True
+
+    band.setLostDeviceCallback(lost_device_callback, found_device_callback)
+    print('Click "Lost Device" on the band')
+    while not found:
+        if band.waitForNotifications(0.5):
+            continue
+    input("enter any key")
+
+
 def activity_log_callback(timestamp,c,i,s,h):
     print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
 
@@ -187,7 +216,7 @@ def get_activity_logs():
     band.get_activity_betwn_intervals(datetime(temp.year,temp.month,temp.day),datetime.now(),activity_log_callback)
     while True:
         band.waitForNotifications(0.2)
-    
+
 if __name__ == "__main__":
     success = False
     while not success:
@@ -211,6 +240,7 @@ if __name__ == "__main__":
     info_item = FunctionItem("Get general info of the device", general_info)
     call_item = FunctionItem("Send Mail/ Call/ Missed Call/ Message", send_notif)
     set_music_item = FunctionItem("Set the band's music and receive music controls", set_music)
+    lost_device_item = FunctionItem("Listen for Device Lost notifications", lost_device)
     steps_item = FunctionItem("@ Get Steps/Meters/Calories/Fat Burned", get_step_count)
     single_heart_rate_item = FunctionItem("@ Get Heart Rate", get_heart_rate)
     real_time_heart_rate_item = FunctionItem("@ Get realtime heart rate data", get_realtime)
@@ -227,6 +257,7 @@ if __name__ == "__main__":
     menu.append_item(get_band_activity_data_item)
     menu.append_item(set_time_item)
     menu.append_item(set_music_item)
+    menu.append_item(lost_device_item)
     menu.append_item(update_watchface_item)
     menu.append_item(dfu_update_item)
     menu.show()
