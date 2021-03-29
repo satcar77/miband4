@@ -98,8 +98,7 @@ class Delegate(DefaultDelegate):
 
         #music controls & lost device
         elif(hnd == 74):
-            cmd = data[1:][0]
-            if cmd == 0xe0:
+            cmd = data[1:][0] if len(data[1:]) > 0 else None
             if data[0] == 0x08:
                 # Start ringing
                 self.device.writeDisplayCommand([0x14, 0x00, 0x00])
