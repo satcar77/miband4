@@ -111,5 +111,6 @@ On a **non rooted phone** you may consider using https://www.freemyband.com/
 
 - 🔃 Create a new pull request
 
-
+## License
+This project is licensed under the MIT License - see the LICENSE.md file for details
 
