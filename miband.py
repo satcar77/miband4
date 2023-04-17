@@ -694,7 +694,7 @@ class miband(Peripheral):
         if any(i for i in included_display_items if i not in DISPLAY_ITEMS.ALL_ITEMS):
             print("Some of those display items are not valid")
             return
-  
+
         excluded_display_items = [i for i in DISPLAY_ITEMS.ALL_ITEMS if i not in included_display_items]
 
         included_display_items.insert(0, 0x12) # 0x12 is the band homescreen
