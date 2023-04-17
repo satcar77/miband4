@@ -101,3 +101,16 @@ class Weekdays(object):
     saturday  = 0x01 << 5
     sunday    = 0x01 << 6
     everyday  = 0x01 << 7
+    
+class DISPLAY_ITEMS(object):
+    
+    __metaclass__ = Immutable
+    STATUS = 0x01
+    HEART_RATE = 0x02
+    WORKOUT = 0x03
+    WEATHER = 0x04
+    MI_HOME = 0x05 # I have no clue what this does. Pressing it does nothing for me
+    NOTIFICATIONS = 0x06
+    MORE = 0x07 # While the app doesn't allow you to remove this, I tried and it works perfectly
+    
+    ALL_ITEMS = [STATUS, HEART_RATE, WORKOUT, WEATHER, NOTIFICATIONS, MORE]
