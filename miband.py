@@ -694,16 +694,24 @@ class miband(Peripheral):
         if any(i for i in included_display_items if i not in DISPLAY_ITEMS.ALL_ITEMS):
             print("Some of those display items are not valid")
             return
-        
+  
         excluded_display_items = [i for i in DISPLAY_ITEMS.ALL_ITEMS if i not in included_display_items]
-        
+
         included_display_items.insert(0, 0x12) # 0x12 is the band homescreen
-        
+
         num_included = len(included_display_items)
-        
+
+        # The format for the band display has a 1e for a constant header, and 4 bytes for each display item
+        # i is the item index and d is the display item ID (look in constants.py)
+        # The included items always show up before the excluded (hidden) items, and are as follows:
+        # <i> 00 ff <d>
+        # The excluded items are as follows:
+        # <i> 01 ff <d>
+        # So including only the homescreen and "more" display item would be like this
+        # 1e  00 00 ff 12  01 00 ff 07  02 01 ff 01  03 01 ff 02  04 01 ff 03  05 01 ff 04  06 01 ff 06
+
         included_bytes = [byte for i, d in enumerate(included_display_items) for byte in [i, 0, 0xff, d]]
         excluded_bytes = [byte for i, d in enumerate(excluded_display_items) for byte in [i + num_included, 1, 0xff, d]]
-        
+
         buf = bytes([0x1e, *included_bytes, *excluded_bytes])
         self.writeChunked(2, buf)
-        
